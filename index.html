@@ -6,42 +6,114 @@ description: A simple WebXR demonstration using A-Frame
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{ page.title }}</title>
-  <!-- Pico设备所需的meta标签 -->
+  <title>WebXR Demo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="pico-vr-content" content="true">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>
+    #mode-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .mode-button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .mode-button:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+    #overlay {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      z-index: 999;
+    }
+    #place-button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #mode-indicator {
+      color: white;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 9999;
+    }
+  </style>
 </head>
 <body>
+  <div id="mode-controls">
+    <button class="mode-button" id="normal-mode-btn">普通模式</button>
+    <button class="mode-button" id="ar-mode-btn">AR模式</button>
+    <button class="mode-button" id="vr-mode-btn">VR模式</button>
+  </div>
+
   <a-scene 
     webxr="requiredFeatures: local-floor; 
-           optionalFeatures: dom-overlay, bounded-floor, camera-access; 
+           optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; 
            overlayElement: #overlay;
            referenceSpaceType: local-floor;"
-    vr-mode-ui="enabled: true"
     device-orientation-permission-ui="enabled: true"
-    renderer="colorManagement: true;">
+    renderer="colorManagement: true; physicallyCorrectLights: true;"
+    loading-screen="enabled: false">
     
     <!-- VR模式专用内容 -->
     <a-entity id="vr-content">
-      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive"></a-box>
-      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive"></a-sphere>
-      <!-- VR模式下的天空盒 -->
-      <a-sky id="vr-sky" color="#ECECEC"></a-sky>
+      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive"
+             animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
+      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive"
+                animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 2 2 -2"></a-sphere>
+      <a-sky id="vr-sky" color="#1A1A1A"></a-sky>
+      <a-entity light="type: ambient; intensity: 0.5"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8; position: -1 1 0"></a-entity>
     </a-entity>
 
     <!-- AR模式专用内容 -->
     <a-entity id="ar-content">
-      <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"></a-box>
-      <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"></a-sphere>
+      <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"
+             animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
+      <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"
+                animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 1 0.8 -1"></a-sphere>
     </a-entity>
 
     <!-- 通用内容 -->
-    <a-plane position="0 0 -2" rotation="-90 0 0" width="10" height="10" color="#7BC8A4" visible="false" id="ground"></a-plane>
+    <a-plane id="ground" position="0 0 -2" rotation="-90 0 0" width="10" height="10" color="#7BC8A4" 
+             material="roughness: 0.8; metalness: 0.2; transparent: true; opacity: 0.8"></a-plane>
     
     <!-- AR模式的hit-test标记 -->
     <a-entity id="hit-test-marker" visible="false">
-      <a-circle radius="0.1" rotation="-90 0 0" material="color: red; opacity: 0.5"></a-circle>
+      <a-circle radius="0.1" rotation="-90 0 0" material="color: #FF4444; opacity: 0.6"></a-circle>
+      <a-circle radius="0.08" rotation="-90 0 0" material="color: white; opacity: 0.8"></a-circle>
     </a-entity>
     
     <!-- VR控制器 -->
@@ -49,13 +121,19 @@ description: A simple WebXR demonstration using A-Frame
     <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
 
     <!-- 相机实体 -->
-    <a-entity id="camera" camera position="0 1.6 0" look-controls wasd-controls></a-entity>
+    <a-entity id="rig">
+      <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls></a-entity>
+    </a-entity>
   </a-scene>
 
   <!-- UI覆盖层 -->
-  <div id="overlay" style="position: fixed; bottom: 20px; width: 100%; text-align: center; z-index: 999;">
-    <button id="place-button" style="display: none; padding: 10px 20px; font-size: 16px;">放置物体</button>
-    <div id="mode-indicator" style="color: white; background: rgba(0,0,0,0.5); padding: 5px; margin-top: 10px;"></div>
+  <div id="overlay">
+    <button id="place-button">放置物体</button>
+    <div id="mode-indicator"></div>
+  </div>
+
+  <div class="loading-screen" id="loading-screen">
+    <div>加载中...</div>
   </div>
 
   <script>
@@ -68,8 +146,61 @@ description: A simple WebXR demonstration using A-Frame
       const arContent = document.querySelector('#ar-content');
       const ground = document.querySelector('#ground');
       const vrSky = document.querySelector('#vr-sky');
+      const loadingScreen = document.querySelector('#loading-screen');
       
-      // 会话开始时的处理
+      // 模式按钮
+      const normalModeBtn = document.querySelector('#normal-mode-btn');
+      const arModeBtn = document.querySelector('#ar-mode-btn');
+      const vrModeBtn = document.querySelector('#vr-mode-btn');
+
+      let currentMode = 'normal';
+
+      // 检查设备支持
+      function checkDeviceSupport() {
+        if (!navigator.xr) {
+          arModeBtn.style.display = 'none';
+          vrModeBtn.style.display = 'none';
+          modeIndicator.textContent = '当前设备不支持 WebXR';
+          return;
+        }
+
+        navigator.xr.isSessionSupported('immersive-ar').then(supported => {
+          if (!supported) arModeBtn.style.display = 'none';
+        });
+
+        navigator.xr.isSessionSupported('immersive-vr').then(supported => {
+          if (!supported) vrModeBtn.style.display = 'none';
+        });
+      }
+
+      // 模式切换处理
+      function switchMode(mode) {
+        currentMode = mode;
+        switch(mode) {
+          case 'normal':
+            scene.exitVR();
+            modeIndicator.textContent = '普通模式';
+            marker.setAttribute('visible', 'false');
+            placeButton.style.display = 'none';
+            vrContent.setAttribute('visible', 'true');
+            arContent.setAttribute('visible', 'true');
+            ground.setAttribute('visible', 'true');
+            vrSky.setAttribute('visible', 'true');
+            break;
+          case 'ar':
+            scene.enterAR();
+            break;
+          case 'vr':
+            scene.enterVR();
+            break;
+        }
+      }
+
+      // 事件监听器
+      normalModeBtn.addEventListener('click', () => switchMode('normal'));
+      arModeBtn.addEventListener('click', () => switchMode('ar'));
+      vrModeBtn.addEventListener('click', () => switchMode('vr'));
+
       scene.addEventListener('enter-vr', function () {
         if (scene.is('ar-mode')) {
           modeIndicator.textContent = 'AR模式';
@@ -90,15 +221,33 @@ description: A simple WebXR demonstration using A-Frame
         }
       });
 
-      // 退出XR时的处理
       scene.addEventListener('exit-vr', function () {
-        modeIndicator.textContent = '普通模式';
-        marker.setAttribute('visible', 'false');
-        placeButton.style.display = 'none';
-        vrContent.setAttribute('visible', 'true');
-        arContent.setAttribute('visible', 'true');
-        ground.setAttribute('visible', 'true');
-        vrSky.setAttribute('visible', 'true');
+        if (currentMode === 'normal') {
+          switchMode('normal');
+        }
+      });
+
+      // 加载完成后隐藏加载屏幕
+      scene.addEventListener('loaded', function () {
+        loadingScreen.style.display = 'none';
+        checkDeviceSupport();
+      });
+
+      // AR hit-test 处理
+      if (scene.systems.webxr) {
+        scene.systems.webxr.addEventListener('ar-hit-test', function (evt) {
+          marker.setAttribute('position', evt.detail.position);
+          marker.setAttribute('visible', true);
+        });
+      }
+
+      // 放置物体按钮处理
+      placeButton.addEventListener('click', function () {
+        const position = marker.getAttribute('position');
+        // 在点击位置创建新的3D对象
+        const newEntity = document.createElement('a-entity');
+        newEntity.setAttribute('position', position);
+        arContent.appendChild(newEntity);
       });
     });
   </script>
