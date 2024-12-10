@@ -14,23 +14,41 @@ description: A simple WebXR demonstration using A-Frame
 </head>
 <body>
   <a-scene 
-    webxr="optionalFeatures: local-floor;"
+    webxr="requiredFeatures: local-floor, bounded-floor; 
+           optionalFeatures: dom-overlay; 
+           overlayElement: #overlay;"
     vr-mode-ui="enabled: true">
-    <a-box position="0 1 -5" rotation="0 45 0" color="#4CC3D9"></a-box>
-    <a-sphere position="2 1 -5" radius="1" color="#FFC65D"></a-sphere>
-    <a-plane position="0 0 -5" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+    
+    <!-- VR模式专用内容 -->
+    <a-entity id="vr-content" visible="false">
+      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9"></a-box>
+      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D"></a-sphere>
+    </a-entity>
+
+    <!-- AR模式专用内容 -->
+    <a-entity id="ar-content" visible="false">
+      <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"></a-box>
+      <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"></a-sphere>
+    </a-entity>
+
+    <!-- 通用内容 -->
+    <a-plane position="0 0 -2" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
     <a-sky color="#ECECEC"></a-sky>
+    
+    <!-- AR模式的hit-test标记 -->
     <a-entity id="hit-test-marker" visible="false">
       <a-circle radius="0.1" rotation="-90 0 0" material="color: red; opacity: 0.5"></a-circle>
     </a-entity>
     
-    <!-- 添加VR控制器实体 -->
-    <a-entity id="leftHand" laser-controls="hand: left"></a-entity>
-    <a-entity id="rightHand" laser-controls="hand: right"></a-entity>
+    <!-- VR控制器 -->
+    <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
+    <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
   </a-scene>
 
-  <div id="overlay">
-    <button id="place-button" style="display: none;">放置物体</button>
+  <!-- UI覆盖层 -->
+  <div id="overlay" style="position: fixed; bottom: 20px; width: 100%; text-align: center; z-index: 999;">
+    <button id="place-button" style="display: none; padding: 10px 20px; font-size: 16px;">放置物体</button>
+    <div id="mode-indicator" style="color: white; background: rgba(0,0,0,0.5); padding: 5px; margin-top: 10px;"></div>
   </div>
 
   <script>
@@ -38,45 +56,46 @@ description: A simple WebXR demonstration using A-Frame
       const scene = document.querySelector('a-scene');
       const marker = document.querySelector('#hit-test-marker');
       const placeButton = document.querySelector('#place-button');
+      const modeIndicator = document.querySelector('#mode-indicator');
+      const vrContent = document.querySelector('#vr-content');
+      const arContent = document.querySelector('#ar-content');
       
       // 检测XR支持
       if (navigator.xr) {
         navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
           if (supported) {
             console.log('VR模式支持');
+            modeIndicator.textContent = 'VR模式可用';
           }
         });
       }
 
-      // 检测设备类型和会话开始
+      // 会话开始时的处理
       scene.addEventListener('enter-vr', function () {
         if (scene.is('ar-mode')) {
           console.log('进入AR模式');
+          modeIndicator.textContent = 'AR模式';
           marker.setAttribute('visible', 'true');
           placeButton.style.display = 'block';
+          vrContent.setAttribute('visible', 'false');
+          arContent.setAttribute('visible', 'true');
         } else {
           console.log('进入VR模式');
+          modeIndicator.textContent = 'VR模式';
           marker.setAttribute('visible', 'false');
           placeButton.style.display = 'none';
-          
-          // 监听左手柄事件
-          const leftHand = document.querySelector('#leftHand');
-          leftHand.addEventListener('triggerdown', function() {
-            console.log('左手柄扳机按下');
-          });
-          
-          // 监听右手柄事件
-          const rightHand = document.querySelector('#rightHand');
-          rightHand.addEventListener('triggerdown', function() {
-            console.log('右手柄扳机按下');
-          });
+          vrContent.setAttribute('visible', 'true');
+          arContent.setAttribute('visible', 'false');
         }
       });
 
-      // 退出VR/AR时的处理
+      // 退出XR时的处理
       scene.addEventListener('exit-vr', function () {
+        modeIndicator.textContent = '普通模式';
         marker.setAttribute('visible', 'false');
-        placeButton.style.display = 'none';
+        placeButton.style.display = 'none');
+        vrContent.setAttribute('visible', 'true');
+        arContent.setAttribute('visible', 'true');
       });
     });
   </script>
