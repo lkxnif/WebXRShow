@@ -28,13 +28,31 @@ description: A simple WebXR demonstration using A-Frame
       const marker = document.querySelector('#hit-test-marker');
       const placeButton = document.querySelector('#place-button');
       
-      // AR会话开始时
+      // 检测设备类型和会话开始
       scene.addEventListener('enter-vr', function () {
         if (scene.is('ar-mode')) {
           // AR模式下的特定行为
+          console.log('进入AR模式');
           marker.setAttribute('visible', 'true');
           placeButton.style.display = 'block';
+        } else {
+          // VR模式下的特定行为（如Pico设备）
+          console.log('进入VR模式');
+          marker.setAttribute('visible', 'false');
+          placeButton.style.display = 'none';
+          
+          // VR模式下可以添加特定的交互方式
+          scene.addEventListener('thumbstickmoved', function(e) {
+            // VR控制器的摇杆移动事件
+            console.log('VR控制器输入');
+          });
         }
+      });
+
+      // 退出VR/AR时的处理
+      scene.addEventListener('exit-vr', function () {
+        marker.setAttribute('visible', 'false');
+        placeButton.style.display = 'none';
       });
     });
   </script>
