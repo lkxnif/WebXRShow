@@ -29,15 +29,19 @@ description: A simple WebXR demonstration using A-Frame
   
   <a-scene 
     webxr="requiredFeatures: local-floor; 
-           optionalFeatures: dom-overlay, bounded-floor; 
-           overlayElement: #overlay;"
+           optionalFeatures: dom-overlay, bounded-floor, camera-access; 
+           overlayElement: #overlay;
+           referenceSpaceType: local-floor;"
     vr-mode-ui="enabled: true"
-    device-orientation-permission-ui="enabled: true">
+    device-orientation-permission-ui="enabled: true"
+    renderer="colorManagement: true;">
     
     <!-- VR模式专用内容 -->
     <a-entity id="vr-content">
       <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive"></a-box>
       <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive"></a-sphere>
+      <!-- VR模式下的天空盒 -->
+      <a-sky id="vr-sky" color="#ECECEC"></a-sky>
     </a-entity>
 
     <!-- AR模式专用内容 -->
@@ -47,8 +51,7 @@ description: A simple WebXR demonstration using A-Frame
     </a-entity>
 
     <!-- 通用内容 -->
-    <a-plane position="0 0 -2" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
-    <a-sky color="#ECECEC"></a-sky>
+    <a-plane position="0 0 -2" rotation="-90 0 0" width="10" height="10" color="#7BC8A4" visible="false" id="ground"></a-plane>
     
     <!-- AR模式的hit-test标记 -->
     <a-entity id="hit-test-marker" visible="false">
@@ -58,6 +61,9 @@ description: A simple WebXR demonstration using A-Frame
     <!-- VR控制器 -->
     <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
     <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+
+    <!-- 相机实体 -->
+    <a-entity id="camera" camera position="0 1.6 0" look-controls wasd-controls></a-entity>
   </a-scene>
 
   <!-- UI覆盖层 -->
@@ -75,6 +81,8 @@ description: A simple WebXR demonstration using A-Frame
       const vrContent = document.querySelector('#vr-content');
       const arContent = document.querySelector('#ar-content');
       const debugInfo = document.querySelector('#debug-info');
+      const ground = document.querySelector('#ground');
+      const vrSky = document.querySelector('#vr-sky');
       
       // 检测XR支持
       if (navigator.xr) {
@@ -115,7 +123,7 @@ description: A simple WebXR demonstration using A-Frame
         debugInfo.textContent += '\n场景已加载';
       });
 
-      // 会话开始时的处理
+      // 会话开始时的处���
       scene.addEventListener('enter-vr', function () {
         debugInfo.textContent += '\n尝试进入XR模式';
         
@@ -126,6 +134,8 @@ description: A simple WebXR demonstration using A-Frame
           placeButton.style.display = 'block';
           vrContent.setAttribute('visible', 'false');
           arContent.setAttribute('visible', 'true');
+          ground.setAttribute('visible', 'false');
+          vrSky.setAttribute('visible', 'false');
         } else {
           debugInfo.textContent += '\n进入VR模式';
           modeIndicator.textContent = 'VR模式';
@@ -133,6 +143,8 @@ description: A simple WebXR demonstration using A-Frame
           placeButton.style.display = 'none';
           vrContent.setAttribute('visible', 'true');
           arContent.setAttribute('visible', 'false');
+          ground.setAttribute('visible', 'true');
+          vrSky.setAttribute('visible', 'true');
         }
       });
 
@@ -144,6 +156,8 @@ description: A simple WebXR demonstration using A-Frame
         placeButton.style.display = 'none';
         vrContent.setAttribute('visible', 'true');
         arContent.setAttribute('visible', 'true');
+        ground.setAttribute('visible', 'true');
+        vrSky.setAttribute('visible', 'true');
       });
 
       // 错误处理
