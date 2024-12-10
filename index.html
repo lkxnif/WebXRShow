@@ -7,10 +7,15 @@ description: A simple WebXR demonstration using A-Frame
 <html>
 <head>
   <title>{{ page.title }}</title>
+  <!-- Pico设备所需的meta标签 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="pico-vr-content" content="true">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
 <body>
-  <a-scene webxr="optionalFeatures: hit-test, local-floor, dom-overlay; overlayElement: #overlay;">
+  <a-scene 
+    webxr="optionalFeatures: local-floor;"
+    vr-mode-ui="enabled: true">
     <a-box position="0 1 -5" rotation="0 45 0" color="#4CC3D9"></a-box>
     <a-sphere position="2 1 -5" radius="1" color="#FFC65D"></a-sphere>
     <a-plane position="0 0 -5" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
@@ -18,33 +23,52 @@ description: A simple WebXR demonstration using A-Frame
     <a-entity id="hit-test-marker" visible="false">
       <a-circle radius="0.1" rotation="-90 0 0" material="color: red; opacity: 0.5"></a-circle>
     </a-entity>
+    
+    <!-- 添加VR控制器实体 -->
+    <a-entity id="leftHand" laser-controls="hand: left"></a-entity>
+    <a-entity id="rightHand" laser-controls="hand: right"></a-entity>
   </a-scene>
+
   <div id="overlay">
     <button id="place-button" style="display: none;">放置物体</button>
   </div>
+
   <script>
     window.addEventListener('load', function () {
       const scene = document.querySelector('a-scene');
       const marker = document.querySelector('#hit-test-marker');
       const placeButton = document.querySelector('#place-button');
       
+      // 检测XR支持
+      if (navigator.xr) {
+        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+          if (supported) {
+            console.log('VR模式支持');
+          }
+        });
+      }
+
       // 检测设备类型和会话开始
       scene.addEventListener('enter-vr', function () {
         if (scene.is('ar-mode')) {
-          // AR模式下的特定行为
           console.log('进入AR模式');
           marker.setAttribute('visible', 'true');
           placeButton.style.display = 'block';
         } else {
-          // VR模式下的特定行为（如Pico设备）
           console.log('进入VR模式');
           marker.setAttribute('visible', 'false');
           placeButton.style.display = 'none';
           
-          // VR模式下可以添加特定的交互方式
-          scene.addEventListener('thumbstickmoved', function(e) {
-            // VR控制器的摇杆移动事件
-            console.log('VR控制器输入');
+          // 监听左手柄事件
+          const leftHand = document.querySelector('#leftHand');
+          leftHand.addEventListener('triggerdown', function() {
+            console.log('左手柄扳机按下');
+          });
+          
+          // 监听右手柄事件
+          const rightHand = document.querySelector('#rightHand');
+          rightHand.addEventListener('triggerdown', function() {
+            console.log('右手柄扳机按下');
           });
         }
       });
