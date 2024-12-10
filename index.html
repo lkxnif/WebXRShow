@@ -20,13 +20,13 @@ description: A simple WebXR demonstration using A-Frame
     vr-mode-ui="enabled: true">
     
     <!-- VR模式专用内容 -->
-    <a-entity id="vr-content" visible="false">
+    <a-entity id="vr-content" visible="true">
       <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9"></a-box>
       <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D"></a-sphere>
     </a-entity>
 
     <!-- AR模式专用内容 -->
-    <a-entity id="ar-content" visible="false">
+    <a-entity id="ar-content" visible="true">
       <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"></a-box>
       <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"></a-sphere>
     </a-entity>
@@ -93,7 +93,7 @@ description: A simple WebXR demonstration using A-Frame
       scene.addEventListener('exit-vr', function () {
         modeIndicator.textContent = '普通模式';
         marker.setAttribute('visible', 'false');
-        placeButton.style.display = 'none');
+        placeButton.style.display = 'none';
         vrContent.setAttribute('visible', 'true');
         arContent.setAttribute('visible', 'true');
       });
