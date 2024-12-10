@@ -11,22 +11,37 @@ description: A simple WebXR demonstration using A-Frame
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="pico-vr-content" content="true">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>
+    #debug-info {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      font-family: monospace;
+      z-index: 9999;
+    }
+  </style>
 </head>
 <body>
+  <div id="debug-info">等待XR初始化...</div>
+  
   <a-scene 
-    webxr="requiredFeatures: local-floor, bounded-floor; 
-           optionalFeatures: dom-overlay; 
+    webxr="requiredFeatures: local-floor; 
+           optionalFeatures: dom-overlay, bounded-floor; 
            overlayElement: #overlay;"
-    vr-mode-ui="enabled: true">
+    vr-mode-ui="enabled: true"
+    device-orientation-permission-ui="enabled: true">
     
     <!-- VR模式专用内容 -->
-    <a-entity id="vr-content" visible="false">
-      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9"></a-box>
-      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D"></a-sphere>
+    <a-entity id="vr-content">
+      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive"></a-box>
+      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive"></a-sphere>
     </a-entity>
 
     <!-- AR模式专用内容 -->
-    <a-entity id="ar-content" visible="false">
+    <a-entity id="ar-content">
       <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"></a-box>
       <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"></a-sphere>
     </a-entity>
@@ -59,28 +74,60 @@ description: A simple WebXR demonstration using A-Frame
       const modeIndicator = document.querySelector('#mode-indicator');
       const vrContent = document.querySelector('#vr-content');
       const arContent = document.querySelector('#ar-content');
+      const debugInfo = document.querySelector('#debug-info');
       
       // 检测XR支持
       if (navigator.xr) {
-        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
-          if (supported) {
-            console.log('VR模式支持');
-            modeIndicator.textContent = 'VR模式可用';
-          }
-        });
+        debugInfo.textContent = '检测XR支持...';
+        
+        // 检测VR支持
+        navigator.xr.isSessionSupported('immersive-vr')
+          .then((supported) => {
+            if (supported) {
+              debugInfo.textContent += '\nVR模式支持';
+              modeIndicator.textContent = 'VR模式可用';
+            } else {
+              debugInfo.textContent += '\nVR模式不支持';
+            }
+          })
+          .catch(err => {
+            debugInfo.textContent += '\nVR检测错误: ' + err;
+          });
+          
+        // 检测AR支持
+        navigator.xr.isSessionSupported('immersive-ar')
+          .then((supported) => {
+            if (supported) {
+              debugInfo.textContent += '\nAR模式支持';
+            } else {
+              debugInfo.textContent += '\nAR模式不支持';
+            }
+          })
+          .catch(err => {
+            debugInfo.textContent += '\nAR检测错误: ' + err;
+          });
+      } else {
+        debugInfo.textContent = 'WebXR不支持';
       }
+
+      // 场景加载完成时
+      scene.addEventListener('loaded', function () {
+        debugInfo.textContent += '\n场景已加载';
+      });
 
       // 会话开始时的处理
       scene.addEventListener('enter-vr', function () {
+        debugInfo.textContent += '\n尝试进入XR模式';
+        
         if (scene.is('ar-mode')) {
-          console.log('进入AR模式');
+          debugInfo.textContent += '\n进入AR模式';
           modeIndicator.textContent = 'AR模式';
           marker.setAttribute('visible', 'true');
           placeButton.style.display = 'block';
           vrContent.setAttribute('visible', 'false');
           arContent.setAttribute('visible', 'true');
         } else {
-          console.log('进入VR模式');
+          debugInfo.textContent += '\n进入VR模式';
           modeIndicator.textContent = 'VR模式';
           marker.setAttribute('visible', 'false');
           placeButton.style.display = 'none';
@@ -91,11 +138,20 @@ description: A simple WebXR demonstration using A-Frame
 
       // 退出XR时的处理
       scene.addEventListener('exit-vr', function () {
+        debugInfo.textContent += '\n退出XR模式';
         modeIndicator.textContent = '普通模式';
         marker.setAttribute('visible', 'false');
-        placeButton.style.display = 'none');
+        placeButton.style.display = 'none';
         vrContent.setAttribute('visible', 'true');
         arContent.setAttribute('visible', 'true');
+      });
+
+      // 错误处理
+      scene.addEventListener('loaded', function () {
+        const webxrManager = scene.systems.webxr;
+        webxrManager.addEventListener('sessionerror', function (evt) {
+          debugInfo.textContent += '\nXR会话错误: ' + evt.error;
+        });
       });
     });
   </script>
