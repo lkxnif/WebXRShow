@@ -56,7 +56,7 @@ description: A simple WebXR demonstration using A-Frame
       margin-top: 10px;
       display: inline-block;
     }
-    .loading-screen {
+    #loading-screen {
       position: fixed;
       top: 0;
       left: 0;
@@ -68,6 +68,11 @@ description: A simple WebXR demonstration using A-Frame
       align-items: center;
       color: white;
       z-index: 9999;
+      transition: opacity 0.5s;
+    }
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -132,12 +137,12 @@ description: A simple WebXR demonstration using A-Frame
     <div id="mode-indicator"></div>
   </div>
 
-  <div class="loading-screen" id="loading-screen">
+  <div id="loading-screen">
     <div>加载中...</div>
   </div>
 
   <script>
-    window.addEventListener('load', function () {
+    document.addEventListener('DOMContentLoaded', function() {
       const scene = document.querySelector('a-scene');
       const marker = document.querySelector('#hit-test-marker');
       const placeButton = document.querySelector('#place-button');
@@ -229,9 +234,23 @@ description: A simple WebXR demonstration using A-Frame
 
       // 加载完成后隐藏加载屏幕
       scene.addEventListener('loaded', function () {
-        loadingScreen.style.display = 'none';
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
         checkDeviceSupport();
       });
+
+      // 确保场景加载超时处理
+      setTimeout(() => {
+        if (!loadingScreen.classList.contains('hidden')) {
+          loadingScreen.classList.add('hidden');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+          checkDeviceSupport();
+        }
+      }, 5000);
 
       // AR hit-test 处理
       if (scene.systems.webxr) {
