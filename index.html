@@ -1,0 +1,21 @@
+---
+layout: default
+title: WebXR Demo
+description: A simple WebXR demonstration using A-Frame
+---
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ page.title }}</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+</head>
+<body>
+  <a-scene>
+    <a-box position="0 1 -5" rotation="0 45 0" color="#4CC3D9"></a-box>
+    <a-sphere position="2 1 -5" radius="1" color="#FFC65D"></a-sphere>
+    <a-plane position="0 0 -5" rotation="-90 0 0" width="10" height="10" color="#7BC8A4"></a-plane>
+    <a-sky color="#ECECEC"></a-sky>
+  </a-scene>
+</body>
+</html>
+<!-- ctrl + alt +i打开网页后，快捷键打开aframe inspector --> 
