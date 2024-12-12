@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VR 体验</title>
+  <!-- 移动设备视口设置，禁止缩放 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Pico VR 设备支持标记 -->
+  <meta name="pico-vr-content" content="true">
+  <!-- 引入 A-Frame VR 框架 -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <!-- 引入 A-Frame 扩展组件库 -->
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  <!-- 加载页面样式 -->
+  <style>
+    /* 加载屏幕样式设置 */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      z-index: 9999;
+      transition: opacity 0.5s;
+    }
+    /* 加载圆环样式 */
+    .loader {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #FFF;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      animation: rotation 1s linear infinite;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* 隐藏类样式 */
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- A-Frame 场景配置 -->
+  <a-scene 
+    webxr="requiredFeatures: local-floor;"  <!-- WebXR特性配置，启用本地空间定位 -->
+    device-orientation-permission-ui="enabled: true"  <!-- 启用设备方向权限UI -->
+    renderer="colorManagement: true;"  <!-- 启用颜色管理 -->
+    vr-mode-ui="enabled: true">  <!-- 启用VR模式UI -->
+    
+    <!-- 资源预加载区域 -->
+    <a-assets timeout="10000">
+      <!-- 加载3D模型资源 -->
+      <a-asset-item id="duckModel" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF/Duck.gltf"></a-asset-item>
+      
+      <!-- 添加展览馆模型 -->
+      <a-asset-item id="galleryModel" src="assets/white_round_exhibition_gallery/scene.gltf"></a-asset-item>
+    </a-assets>
+    
+    <!-- VR场景内容 -->
+    <a-entity id="vr-content">
+      <!-- 旋转的立方体 -->
+      <a-box position="0 1.6 -2" 
+             rotation="0 45 0" 
+             color="#4CC3D9" 
+             class="interactive"
+             animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
+      
+      <!-- 上下浮动的球体 -->
+      <a-sphere position="2 1.6 -2" 
+                radius="0.5" 
+                color="#FFC65D" 
+                class="interactive"
+                animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 2 2 -2"></a-sphere>
+      
+
+      <!-- 旋转的鸭子3D模型 -->
+      <a-entity
+        id="duck-model"
+        gltf-model="#duckModel"
+        position="0 1 -3"
+        scale="1 1 1"
+        rotation="0 -45 0"
+        class="interactive"
+        animation="property: rotation; to: 0 315 0; dur: 5000; easing: linear; loop: true">
+      </a-entity>
+      
+      <!-- 天空背景 -->
+      <a-sky color="#ECECEC"></a-sky>
+
+    
+
+    <!-- 地面平面 -->
+    <a-plane position="0 0 0" 
+             rotation="-90 0 0" 
+             width="20" 
+             height="20" 
+             color="#7BC8A4"></a-plane>
+    
+    <!-- VR控制器设置 -->
+    <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
+    <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+
+    <!-- 相机设置 -->
+    <a-entity id="rig">
+      <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls></a-entity>
+    </a-entity>
+
+    <!-- 场景光照设置 -->
+    <a-entity light="type: ambient; color: #BBB"></a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-0.5 1 1"></a-entity>
+
+    <!-- 添加展览馆模型 -->
+    <a-entity
+        id="gallery-model"
+        gltf-model="#galleryModel"
+        position="0 9 0"
+        scale="2 2 2"
+        rotation="0 0 0"
+        class="interactive"
+        animation-mixer>
+    </a-entity>
+
+    <!-- 添加 ocean -->
+    <a-ocean 
+      position="25 0 0"
+      width="50" 
+      depth="50" 
+      density="10" 
+      color="#0077be" 
+      opacity="0.8">
+    </a-ocean>
+  </a-scene>
+
+  <!-- 加载屏幕 -->
+  <div id="loading-screen">
+    <div class="loader"></div>
+  </div>
+
+  <!-- 页面加载脚本 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loadingScreen = document.querySelector('#loading-screen');
+      const scene = document.querySelector('a-scene');
+
+      // 场景加载完成后隐藏加载屏幕
+      scene.addEventListener('loaded', function () {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      });
+
+      // 10秒后强制隐藏加载屏幕（防止加载卡住）
+      setTimeout(() => {
+        if (!loadingScreen.classList.contains('hidden')) {
+          loadingScreen.classList.add('hidden');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }
+      }, 10000);
+    });
+  </script>
+
+  <!-- 在 </a-scene> 标签前添加调试脚本 -->
+  <script>
+    // 获取场景元素
+    const scene = document.querySelector('a-scene');
+    
+    // 监听模型加载错误
+    scene.addEventListener('model-error', function(e) {
+      console.error('模型加载错误:', e.detail.src);
+      console.error('错误详情:', e.detail.message);
+    });
+
+    // 监听资源加载情况
+    scene.addEventListener('loaded', function () {
+      console.log('场景加载完成');
+      
+    });
+  </script>
+</body>
+</html> 
