@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>VR 体验</title>
   <!-- 移动设备视口设置，禁止缩放 -->
@@ -9,7 +10,14 @@
   <!-- 引入 A-Frame VR 框架 -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <!-- 引入 A-Frame 扩展组件库 -->
-  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@d5f3f8/dist/aframe-extras.min.js"></script>
+  <!-- 新增的组件库 -->
+  <script
+    src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-simple-sun-sky@^1.2.2/simple-sun-sky.js"></script>
+  <!-- 引入 entity-generator 组件 -->
+  <script
+    src="https://unpkg.com/aframe-entity-generator-component@3.0.2/dist/aframe-entity-generator-component.min.js"></script>
   <!-- 加载页面样式 -->
   <style>
     /* 加载屏幕样式设置 */
@@ -19,7 +27,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -27,6 +35,7 @@
       z-index: 9999;
       transition: opacity 0.5s;
     }
+
     /* 加载圆环样式 */
     .loader {
       width: 36px;
@@ -36,10 +45,17 @@
       border-radius: 50%;
       animation: rotation 1s linear infinite;
     }
+
     @keyframes rotation {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
+
     /* 隐藏类样式 */
     .hidden {
       opacity: 0;
@@ -47,21 +63,18 @@
     }
   </style>
 </head>
+
 <body>
   <!-- A-Frame 场景配置 -->
-  <a-scene 
-    webxr="requiredFeatures: local-floor;" 
-    device-orientation-permission-ui="enabled: true"  
-    renderer="
+  <a-scene webxr="requiredFeatures: local-floor;" device-orientation-permission-ui="enabled: true" renderer="
       colorManagement: true;
       physicallyCorrectLights: false;
       gammaOutput: true;
       exposure: 1.2;
       toneMapping: ACESFilmic;
       toneMappingExposure: 1.2;
-    "
-    vr-mode-ui="enabled: true">  <!-- 启用VR模式UI -->
-    
+    " vr-mode-ui="enabled: true" stats> <!-- 启用VR模式UI -->
+
     <!-- 资源预加载区域 -->
     <a-assets timeout="10000">
       <!-- 添加展览馆模型 -->
@@ -71,198 +84,132 @@
       <a-asset-item id="oceanWaveModel" src="assets/ocean_wave_-__wmaya/scene.gltf"></a-asset-item>
 
       <!-- 添加海洋场景模型 -->
-      <a-asset-item id="oceanSceneModel" src="assets/animated_ocean_scene_tutorial_example_1/scene.gltf"></a-asset-item>
-    
-      <img id="water-diffuse" src="assets/water002/Water_002_COLOR.jpg" />
-      <img id="water-normal" src="assets/water002/Water_002_NORM.jpg" />
-      <img id="water-rough" src="assets/water002/Water_002_ROUGH.jpg" />
-      <img id="water-ao" src="assets/water002/Water_002_OCC.jpg" />
-      <img id="water-disp" src="assets/water002/Water_002_DISP.png" />
+      <a-asset-item id="oceanSceneModel" src="assets/animated_ocean_scene_tutorial_example_1/scene.gltf"
+        crossorigin="anonymous">
+      </a-asset-item>
+
     </a-assets>
-    
+
     <!-- VR场景内容 -->
     <a-entity id="vr-content">
       <!-- 旋转的立方体 -->
-      <a-box position="0 1.6 -2" 
-             rotation="0 45 0" 
-             color="#4CC3D9" 
-             class="interactive"
-             animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
-      
+      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive">
+      </a-box>
+
       <!-- 上下浮动的球体 -->
-      <a-sphere position="2 1.6 -2" 
-                radius="0.5" 
-                color="#FFC65D" 
-                class="interactive"
-                animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 2 2 -2"></a-sphere>
-      
+      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive">
+      </a-sphere>
 
-      <!-- 天空背景 -->
-      <a-sky color="#0c2545"></a-sky>
+      <!-- 添加海底气泡效果 -->
+      <a-entity id="bubbles" scale="0.8 0.3 0.8" particle-system="
+        preset: dust; 
+        color: #FFFFFF,#88CCFF; 
+        particleCount: 50; 
+        size: 1.5, 4.5;           // 改为更合适的气泡大小范围
+        velocityValue: 0 0.2 0; 
+        maxAge: 15; 
+        opacity: 0.3, 0.7;        // 改为更自然的透明度范围
+        blending: additive;       // 添加加法混合模式
+        randomize: true;          // 启用随机效果
+        velocitySpread: 0.2 0 0.2;  // 添加一些水平方向的随机运动
+        accelerationValue: 0 0.1 0;  // 轻微的向上加速度
+        positionSpread: 2 0 2> // 分散气泡的生成位置
+      </a-entity>
 
-    
-    <!-- VR控制器设置 -->
-    <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
-    <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+      <!-- 添加动画球体 -->
+      <a-entity id=" sphere" geometry="primitive: sphere"
+        material="color: #EFEFEF; shader: standard; emissive: #EFEFEF; emissiveIntensity: 0.2" position="0 1.6 -3"
+        light="type: point; intensity: 0.5; distance: 5"
+        animation="property: position; easing: easeInOutQuad; dir: alternate; dur: 1000; to: 0 1.4 -3; loop: true">
+      </a-entity>
 
-    <!-- 相机设置 -->
-    <a-entity id="rig">
-      <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls></a-entity>
-    </a-entity>
+      <!-- 添加海洋效果 -->
+      <a-entity id="ocean" position="0 0 0" ocean="density: 20; width: 50; depth: 50; speed: 4"
+        material="color: #9CE3F9; opacity: 0.75; metalness: 0; roughness: 1" rotation="-90 0 0">
+      </a-entity>
 
-    <!-- 场景光照设置 -->
-    <!-- 环境光：营造深蓝色调的深海氛围 -->
-    <a-entity light="type: ambient; color: #0c3a6c; intensity: 0.5"></a-entity>
-    
-    <!-- 平行光：模拟水面折射光 -->
-    <a-entity id="water-light-1"
-              light="type: directional; 
+      <!-- 新的天空系统 -->
+      <a-simple-sun-sky sun-position="1 0.4 0"></a-simple-sun-sky>
+
+      <!-- VR控制器设置 -->
+      <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
+      <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+
+      <!-- 相机设置 -->
+      <a-entity id="rig">
+        <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true"
+          wasd-controls></a-entity>
+      </a-entity>
+
+      <!-- 场景光照置 -->
+      <!-- 环境光：营深蓝色调的深海氛围 -->
+      <a-entity light="type: ambient; color: #0c3a6c; intensity: 0.5"></a-entity>
+
+      <!-- 平行光：模拟水面折射光 -->
+      <a-entity id="water-light-1" light="type: directional; 
                     color: #2a65a5; 
-                    intensity: 0.9; 
-                    castShadow: true"
-              position="-0.5 4 1"
-              animation="property: position; 
-                        dir: alternate; 
-                        dur: 4000; 
-                        easing: easeInOutSine; 
-                        loop: true; 
-                        to: 0.5 3.5 1">
-    </a-entity>
+                    intensity: 0.8; 
+                    castShadow: false" position="-0.5 4 1">
+      </a-entity>
 
-    <!-- 第二束平行光：增强水波动效果 -->
-    <a-entity id="water-light-2"
-              light="type: directional; 
-                    color: #3a75b5; 
-                    intensity: 0.7; 
-                    castShadow: true"
-              position="0.5 3.5 -1"
-              animation="property: position; 
-                        dir: alternate; 
-                        dur: 3000; 
-                        easing: easeInOutSine; 
-                        loop: true; 
-                        to: -0.5 4 -1">
-    </a-entity>
-
-    <!-- 半球光：模拟水体散射 -->
-    <a-entity light="type: hemisphere; 
+      <!-- 半球光：模拟水体散射 -->
+      <a-entity light="type: hemisphere; 
                     color: #2a65a5; 
                     groundColor: #0c2545; 
-                    intensity: 0.6">
-    </a-entity>
+                    intensity: 0.5">
+      </a-entity>
 
-    <!-- 添加展览馆模型 -->
-    <a-entity
-        id="gallery-model"
-        gltf-model="#galleryModel"
-        position="0 9 0"
-        scale="2 2 2"
-        rotation="0 0 0"
-        class="interactive"
-        animation-mixer>
-    </a-entity>
+      <!-- 添加展览馆模型 -->
+      <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
+        class="interactive">
+      </a-entity>
 
-    <!-- 添加海浪模型 -->
+      <!-- 添加海浪模型
     <a-entity
-      id="ocean-wave" animation-mixer="loop: repeat; timeScale: 0.45"
+      id="ocean-wave"
+      animation-mixer="loop: once; 
+                      timeScale: 0.4; 
+                      clampWhenFinished: true;
+                      crossFadeDuration: 0.4"
       gltf-model="#oceanWaveModel"
       position="0 21.72 0"
       scale="1.5 0.15 1.5"
       rotation="0 0 180"
       class="interactive">
-    </a-entity>
+    </a-entity> -->
 
-    <a-entity 
-      id="ocean-wave-mask" 
-      scale="20 20 1" 
-      rotation="90 0 0" 
-      geometry="primitive: circle" 
-      position="0 21.32 0" 
-      material="
-        shader: flat;
-        opacity: 0.6; 
-        transparent: true; 
-        color: #0099FF"
-    >
-    </a-entity>
 
-    <!-- 添加海洋场景模型 -->
-    <a-entity
-      id="ocean-scene"
-      gltf-model="#oceanSceneModel"
-      position="0 -0.53594 0"
-      scale="3 0.8 3"
-      rotation="0 0 0"
-      class="interactive"
-      animation-mixer>
-    </a-entity>
+      <!-- 加载屏幕 -->
+      <div id="loading-screen">
+        <div class="loader"></div>
+      </div>
 
-  
-  <!-- 加载屏幕 -->
-  <div id="loading-screen">
-    <div class="loader"></div>
-  </div>
+      <!-- 页面加载脚本 -->
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const loadingScreen = document.querySelector('#loading-screen');
+          const scene = document.querySelector('a-scene');
 
-  <!-- 页面加载脚本 -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const loadingScreen = document.querySelector('#loading-screen');
-      const scene = document.querySelector('a-scene');
-
-      // 场景加载完成后隐藏加载屏幕
-      scene.addEventListener('loaded', function () {
-        loadingScreen.classList.add('hidden');
-        setTimeout(() => {
-          loadingScreen.style.display = 'none';
-        }, 500);
-      });
-
-      // 10秒后强制隐藏加载屏幕（防止加载卡住）
-      setTimeout(() => {
-        if (!loadingScreen.classList.contains('hidden')) {
-          loadingScreen.classList.add('hidden');
-          setTimeout(() => {
-            loadingScreen.style.display = 'none';
-          }, 500);
-        }
-      }, 10000);
-    });
-  </script>
-
-  <!-- 材质处理脚本 -->
-  <script>
-    function updateMaterialProperties(entityId, properties) {
-      const entity = document.getElementById(entityId);
-      if (!entity) {
-        console.error(`Entity with id ${entityId} not found`);
-        return;
-      }
-
-      entity.addEventListener('model-loaded', function () {
-        const mesh = entity.getObject3D('mesh');
-        if (mesh) {
-          mesh.traverse(node => {
-            if (node.material) {
-              // 设置材质的通用属性
-              Object.keys(properties).forEach(key => {
-                if (key in node.material) {
-                  node.material[key] = properties[key];
-                }
-              });
-
-              // 强制更新材质
-              node.material.needsUpdate = true;
-            }
+          // 场景加载完成后隐藏加载屏幕
+          scene.addEventListener('loaded', function () {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+              loadingScreen.style.display = 'none';
+            }, 500);
           });
-        }
-      });
-    }
 
-    // 只修改ocean-wave模型的材质属性
-    updateMaterialProperties('ocean-wave', {
-      metalness: 0.4,
-      roughness: 0.3
-    });
-  </script>
+          // 10秒后强制隐藏加载屏幕（防止加载卡住）
+          setTimeout(() => {
+            if (!loadingScreen.classList.contains('hidden')) {
+              loadingScreen.classList.add('hidden');
+              setTimeout(() => {
+                loadingScreen.style.display = 'none';
+              }, 500);
+            }
+          }, 10000);
+        });
+      </script>
+
 </body>
-</html> 
+
+</html>
