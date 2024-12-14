@@ -179,7 +179,7 @@
 
     <!-- 添加海浪模型 -->
     <a-entity
-      id="ocean-wave" animation-mixer="loop: repeat; timeScale: 0.3; clampWhenFinished: false"
+      id="ocean-wave" animation-mixer="loop: once; timeScale: 1; clampWhenFinished: true"
       gltf-model="#oceanWaveModel"
       position="0 21.5 0.8"
       scale="1.5 0.1 1.5"
@@ -221,7 +221,10 @@
       scale="10 1 10"
       rotation="0 0 0"
       class="interactive"
-      animation-mixer>
+      animation-mixer
+      lod="minDistance: 5; maxDistance: 50; levels: 3"
+      geometry="buffer: false; skipCache: true"
+      material="npot: true; textureFilter: nearest">
     </a-entity>
 
   
@@ -265,7 +268,13 @@
       '#gallery-model': { metalness: 0.9, roughness: 0.1 },
       '#ocean-wave': { metalness: 0.1, roughness: 0.2 },
       '#ocean-scene': { metalness: 0.4, roughness: 0.3 },
-      '#new-ocean': { metalness: 0.4, roughness: 0.3 }
+      '#new-ocean': { 
+        metalness: 0.4, 
+        roughness: 0.3,
+        textureCompression: true,
+        textureAnisotropy: 1,
+        geometryOptimization: true
+      }
     };
     
     modelEntities.forEach(selector => {
@@ -288,6 +297,23 @@
                   opacity: 1.0,
                   side: THREE.DoubleSide
                 });
+
+                // 特别针对new-ocean模型的优化
+                if (selector === '#new-ocean') {
+                  // 降低纹理质量
+                  if (node.material.map) {
+                    node.material.map.minFilter = THREE.NearestFilter;
+                    node.material.map.magFilter = THREE.NearestFilter;
+                    node.material.map.anisotropy = 1;
+                  }
+                  
+                  // 简化几何体
+                  if (node.geometry) {
+                    const modifier = new THREE.SimplifyModifier();
+                    const count = Math.floor(node.geometry.attributes.position.count * 0.5); // 减少50%的顶点
+                    node.geometry = modifier.modify(node.geometry, count);
+                  }
+                }
                 
                 // 复制原始材质的贴图和属性
                 if (node.material.map) {
