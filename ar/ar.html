@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>AR 模式</title>
+  <title>WebXR AR 演示</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
@@ -11,7 +12,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -19,31 +20,42 @@
       z-index: 9999;
       transition: opacity 0.5s;
     }
+
     .hidden {
       opacity: 0;
       pointer-events: none;
     }
   </style>
 </head>
+
 <body>
-  <a-scene 
-    webxr="optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; 
-           overlayElement: #overlay;"
-    device-orientation-permission-ui="enabled: true"
-    renderer="colorManagement: true;">
-    
+  <a-scene webxr="optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; 
+           overlayElement: #overlay;" device-orientation-permission-ui="enabled: true" renderer="colorManagement: true;
+      physicallyCorrectLights: false;
+      gammaOutput: true;
+      exposure: 1.2;
+      toneMapping: ACESFilmic;
+      toneMappingExposure: 1.2;">
+
+    <!-- 资源管理 -->
+    <a-assets timeout="10000">
+      <!-- 添加展览馆模型 -->
+      <a-asset-item id="galleryModel" src="../vr/assets/white_round_exhibition_gallery/scene.gltf"
+        crossorigin="anonymous"></a-asset-item>
+    </a-assets>
+
     <!-- AR内容 -->
     <a-entity id="ar-content">
-      <a-box position="0 0.5 -1" 
-             rotation="0 45 0" 
-             scale="0.5 0.5 0.5" 
-             color="#4CC3D9"
-             animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
-      
-      <a-sphere position="1 0.5 -1" 
-                radius="0.25" 
-                color="#FFC65D"
-                animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 1 0.8 -1"></a-sphere>
+      <!-- 添加展览馆模型 -->
+      <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 0 -3" scale="0.05 0.05 0.05" rotation="0 0 0"
+        class="interactive">
+      </a-entity>
+
+      <a-box position="0 0.5 -1" rotation="0 45 0" scale="0.5 0.5 0.5" color="#4CC3D9"
+        animation="property: rotation; to: 0 405 0; dur: 2000; easing: easeInOutQuad; loop: true"></a-box>
+
+      <a-sphere position="1 0.5 -1" radius="0.25" color="#FFC65D"
+        animation="property: position; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 1 0.8 -1"></a-sphere>
     </a-entity>
 
     <!-- AR模式的hit-test标记 -->
@@ -72,7 +84,7 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const scene = document.querySelector('a-scene');
       const marker = document.querySelector('#hit-test-marker');
       const loadingScreen = document.querySelector('#loading-screen');
@@ -110,4 +122,5 @@
     });
   </script>
 </body>
-</html> 
+
+</html>

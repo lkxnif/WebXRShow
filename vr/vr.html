@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>VR 体验</title>
+  <title>WebXR VR 演示</title>
   <!-- 移动设备视口设置，禁止缩放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <!-- Pico VR 设备支持标记 -->
@@ -80,18 +80,23 @@
       <!-- 添加展览馆模型 -->
       <a-asset-item id="galleryModel" src="assets/white_round_exhibition_gallery/scene.gltf"></a-asset-item>
 
-      <!-- 添加海浪模型 -->
-      <a-asset-item id="oceanWaveModel" src="assets/ocean_wave_-__wmaya/scene.gltf"></a-asset-item>
-
       <!-- 添加海洋场景模型 -->
       <a-asset-item id="oceanSceneModel" src="assets/animated_ocean_scene_tutorial_example_1/scene.gltf"
         crossorigin="anonymous">
       </a-asset-item>
 
+      <!-- 添加图片资源 -->
+      <img id="skyImage" src="assets/sky.jpg" crossorigin="anonymous">
+
     </a-assets>
 
     <!-- VR场景内容 -->
     <a-entity id="vr-content">
+      <!-- 添加天空图 -->
+      <a-image id="skyImage" src="#skyImage" position="0 21.3 0" rotation="90 0 0" scale="25 25 0" width="3" height="2"
+        class="interactive">
+      </a-image>
+
       <!-- 旋转的立方体 -->
       <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive">
       </a-box>
@@ -104,7 +109,7 @@
       <a-entity id="bubbles" scale="0.8 0.3 0.8" particle-system="
         preset: dust; 
         color: #FFFFFF,#88CCFF; 
-        particleCount: 50; 
+        particleCount: 45; 
         size: 1.5, 4.5;           // 改为更合适的气泡大小范围
         velocityValue: 0 0.2 0; 
         maxAge: 15; 
@@ -113,7 +118,7 @@
         randomize: true;          // 启用随机效果
         velocitySpread: 0.2 0 0.2;  // 添加一些水平方向的随机运动
         accelerationValue: 0 0.1 0;  // 轻微的向上加速度
-        positionSpread: 2 0 2> // 分散气泡的生成位置
+        positionSpread: 2 0 2">
       </a-entity>
 
       <!-- 添加动画球体 -->
@@ -163,21 +168,6 @@
       <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
         class="interactive">
       </a-entity>
-
-      <!-- 添加海浪模型
-    <a-entity
-      id="ocean-wave"
-      animation-mixer="loop: once; 
-                      timeScale: 0.4; 
-                      clampWhenFinished: true;
-                      crossFadeDuration: 0.4"
-      gltf-model="#oceanWaveModel"
-      position="0 21.72 0"
-      scale="1.5 0.15 1.5"
-      rotation="0 0 180"
-      class="interactive">
-    </a-entity> -->
-
 
       <!-- 加载屏幕 -->
       <div id="loading-screen">
