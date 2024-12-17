@@ -94,14 +94,15 @@
 
 <body>
   <!-- A-Frame 场景配置 -->
-  <a-scene webxr="requiredFeatures: hit-test,local-floor;" device-orientation-permission-ui="enabled: true" renderer="
+  <a-scene webxr="requiredFeatures: local-floor;" device-orientation-permission-ui="enabled: true" renderer="
       colorManagement: true;
       physicallyCorrectLights: false;
       gammaOutput: true;
       exposure: 1.2;
       toneMapping: ACESFilmic;
       toneMappingExposure: 1.2;
-    " vr-mode-ui="enabled: true" ar-mode-ui="enabled: true">
+    " vr-mode-ui="enabled: true" ar-mode-ui=" enabled: true; 
+                    enterARButton: #custom-enter-ar"> <!-- 启用VR模式UI -->
 
     <!-- 源预加载区域 -->
     <a-assets timeout="10000">
@@ -165,9 +166,9 @@
 
       <!-- 相机设置 -->
       <a-entity id="rig">
-        <a-camera id="camera" position="0 3 0" look-controls="pointerLockEnabled: true" wasd-controls>
+        <a-camera id="camera" position="0 2 0" look-controls="pointerLockEnabled: true" wasd-controls>
           <!-- 跟随视角的球体 - 泡泡效果 -->
-          <a-entity geometry="primitive: sphere; radius: 0.3" position="0 -0.5 -1" material="shader: flat; 
+          <a-entity geometry="primitive: sphere; radius: 0.3" position="0 -0.8 -1" material="shader: flat; 
                              src: #coveImage; 
                              opacity: 0.6; 
                              side: double;
@@ -180,7 +181,7 @@
                              dir: alternate; 
                              dur: 2000; 
                              easing: easeInOutSine; 
-                             to: 0 -0.35 -1; 
+                             to: 0 -0.65 -1; 
                              loop: true" animation__rotate="property: rotation;
                              from: 0 0 0;
                              to: 180 1260 180;
@@ -249,6 +250,17 @@
               }, 500);
             }
           }, 10000);
+        });
+      </script>
+
+      <!-- 添加自定义 AR 按钮并设置跳转 -->
+      <button id="custom-enter-ar" style="display: none"></button>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const arButton = document.querySelector('#custom-enter-ar');
+          arButton.addEventListener('click', function () {
+            window.location.href = 'ar.html';
+          });
         });
       </script>
 
