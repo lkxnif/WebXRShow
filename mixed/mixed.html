@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebXR AR/VR 演示</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="pico-vr-content" content="true">
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@d5f3f8/dist/aframe-extras.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-simple-sun-sky@^1.2.2/simple-sun-sky.js"></script>
+    <script
+        src="https://unpkg.com/aframe-entity-generator-component@3.0.2/dist/aframe-entity-generator-component.min.js"></script>
+
+    <!-- 添加自定义组件 -->
+    <script>
+        AFRAME.registerComponent('follow-camera', {
+            schema: {
+                distance: { type: 'number', default: 2 },
+                height: { type: 'number', default: -0.5 }
+            },
+
+            tick: function () {
+                var cameraEl = document.querySelector('#camera');
+                if (!cameraEl) return;
+
+                var worldPos = new THREE.Vector3();
+                var worldDir = new THREE.Vector3();
+                cameraEl.object3D.getWorldPosition(worldPos);
+                cameraEl.object3D.getWorldDirection(worldDir);
+
+                var targetPosition = worldPos.clone()
+                    .add(worldDir.multiplyScalar(this.data.distance));
+                targetPosition.y += this.data.height;
+
+                this.el.object3D.position.copy(targetPosition);
+            }
+        });
+    </script>
+
+    <style>
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        .loader {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9998;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <a-scene
+        webxr="requiredFeatures: local-floor; optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; overlayElement: #overlay;"
+        device-orientation-permission-ui="enabled: true" renderer="
+        colorManagement: true;
+        physicallyCorrectLights: false;
+        gammaOutput: true;
+        exposure: 1.2;
+        toneMapping: ACESFilmic;
+        toneMappingExposure: 1.2;
+    " vr-mode-ui="enabled: true">
+
+        <!-- 资源预加载区域 -->
+        <a-assets timeout="10000">
+            <!-- 展览馆模型 -->
+            <a-asset-item id="galleryModel" src="../vr/assets/white_round_exhibition_gallery/scene.gltf"
+                crossorigin="anonymous"></a-asset-item>
+            <!-- 海洋场景模型 -->
+            <a-asset-item id="oceanSceneModel" src="../vr/assets/animated_ocean_scene_tutorial_example_1/scene.gltf"
+                crossorigin="anonymous"></a-asset-item>
+            <!-- 卡通海豚模型 -->
+            <a-asset-item id="dolphinModel" src="../vr/assets/cartoon_dolphins/scene.gltf"
+                crossorigin="anonymous"></a-asset-item>
+            <!-- 图片资源 -->
+            <img id="skyImage" src="../vr/assets/sky.jpg" crossorigin="anonymous">
+            <img id="coveImage" src="../vr/assets/the_cove.jpg" crossorigin="anonymous">
+        </a-assets>
+
+        <!-- VR内容 -->
+        <a-entity id="vr-content">
+            <!-- 添加天空图 -->
+            <a-image id="skyImage" src="#skyImage" position="0 21.3 0" rotation="90 0 0" scale="25 25 0" width="3"
+                height="2" class="interactive">
+            </a-image>
+
+            <!-- 添加卡通海豚 -->
+            <a-entity id="dolphin" gltf-model="#dolphinModel" position="0 15 0" scale="1.5 1.5 1.5">
+            </a-entity>
+
+            <!-- 添加海底气泡效果 -->
+            <a-entity id="bubbles" scale="0.8 0.3 0.8" particle-system="
+                preset: dust; 
+                color: #FFFFFF,#88CCFF; 
+                particleCount: 45; 
+                size: 1.5, 4.5;           // 改为更合适的气泡大小范围
+                velocityValue: 0 0.2 0; 
+                maxAge: 15; 
+                opacity: 0.3, 0.7;        // 改为更自然的透明度范围
+                blending: additive;       // 添加加法混合模式
+                randomize: true;          // 启用随机效果
+                velocitySpread: 0.2 0 0.2;  // 添加一些水平方向的随机运动
+                accelerationValue: 0 0.1 0;  // 轻微的向上加速度
+                positionSpread: 2 0 2">
+            </a-entity>
+
+            <!-- 添加海洋效果 -->
+            <a-entity id="ocean" position="0 0 0" ocean="density: 20; width: 50; depth: 50; speed: 4"
+                material="color: #9CE3F9; opacity: 0.75; metalness: 0; roughness: 1" rotation="-90 0 0">
+            </a-entity>
+
+            <!-- 新的天空系统 -->
+            <a-simple-sun-sky sun-position="1 0.4 0"></a-simple-sun-sky>
+
+            <!-- 场景光照置 -->
+            <!-- 环境光：营深蓝色调的深海氛围 -->
+            <a-entity light="type: ambient; color: #0c3a6c; intensity: 0.5"></a-entity>
+
+            <!-- 平行光：模拟水面折射光 -->
+            <a-entity id="water-light-1" light="type: directional; 
+                    color: #2a65a5; 
+                    intensity: 0.8; 
+                    castShadow: false" position="-0.5 4 1">
+            </a-entity>
+
+            <!-- 半球光：模拟水体散射 -->
+            <a-entity light="type: hemisphere; 
+                    color: #2a65a5; 
+                    groundColor: #0c2545; 
+                    intensity: 0.5">
+            </a-entity>
+
+            <!-- VR控制器设置 -->
+            <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
+            <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+
+            <!-- 相机设置 -->
+            <a-entity id="rig">
+                <a-camera id="camera" position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls>
+                    <!-- 跟随视角的球体 - 泡泡效果 -->
+                    <a-entity id="follow-sphere" geometry="primitive: sphere; radius: 0.3" position="0 -0.8 -1"
+                        material="shader: flat; 
+                                src: #coveImage; 
+                                opacity: 0.6; 
+                                side: double;
+                                transparent: true;
+                                metalness: 0.3;
+                                roughness: 0.3;
+                                alphaTest: 0.2;
+                                emissive:#ff4000;
+                                emissiveIntensity: 0.3" animation__position="property: position; 
+                                dir: alternate; 
+                                dur: 2000; 
+                                easing: easeInOutSine; 
+                                to: 0 -0.65 -1; 
+                                loop: true" animation__rotate="property: rotation;
+                                from: 0 0 0;
+                                to: 180 1260 180;
+                                dur: 20000;
+                                easing: linear;
+                                loop: true">
+                        <!-- 内部点光源 -->
+                        <a-entity light="type: point;
+                                color: #ff2200;
+                                intensity: 0.8;
+                                distance: 1.5;
+                                decay: 1" position="0 0 0">
+                        </a-entity>
+                    </a-entity>
+                </a-camera>
+            </a-entity>
+
+            <!-- 添加展览馆模型 -->
+            <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
+                class="interactive">
+            </a-entity>
+        </a-entity>
+
+        <!-- AR内容 -->
+        <a-entity id="ar-content" visible="false">
+            <!-- AR模式的展览馆模型 -->
+            <a-entity id="gallery-model-ar" gltf-model="#galleryModel" position="0 0 -3" scale="0.05 0.05 0.05"
+                rotation="0 0 0" class="interactive"></a-entity>
+
+            <!-- AR模式的hit-test标记 -->
+            <a-entity id="hit-test-marker" visible="false">
+                <a-circle radius="0.1" rotation="-90 0 0" material="color: #FF4444; opacity: 0.6"></a-circle>
+                <a-circle radius="0.08" rotation="-90 0 0" material="color: white; opacity: 0.8"></a-circle>
+            </a-entity>
+        </a-entity>
+    </a-scene>
+
+    <!-- UI覆盖层 -->
+    <div id="overlay">
+        <div id="mode-indicator"></div>
+    </div>
+
+    <!-- 加载屏幕 -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scene = document.querySelector('a-scene');
+            const vrContent = document.querySelector('#vr-content');
+            const arContent = document.querySelector('#ar-content');
+            const marker = document.querySelector('#hit-test-marker');
+            const loadingScreen = document.querySelector('#loading-screen');
+            const followSphere = document.querySelector('#follow-sphere');
+            const vrLights = document.querySelector('#vr-lights');
+
+            scene.addEventListener('enter-vr', function () {
+                if (scene.is('ar-mode')) {
+                    vrContent.setAttribute('visible', 'false');
+                    arContent.setAttribute('visible', 'true');
+                    followSphere.setAttribute('visible', 'false');
+                    vrLights.setAttribute('visible', 'false');
+                    marker.setAttribute('visible', 'true');
+                } else {
+                    vrContent.setAttribute('visible', 'true');
+                    arContent.setAttribute('visible', 'false');
+                    followSphere.setAttribute('visible', 'true');
+                    vrLights.setAttribute('visible', 'true');
+                }
+            });
+
+            scene.addEventListener('exit-vr', function () {
+                marker.setAttribute('visible', 'false');
+            });
+
+            scene.addEventListener('loaded', function () {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            });
+
+            setTimeout(() => {
+                if (!loadingScreen.classList.contains('hidden')) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 10000);
+
+            if (scene.systems.webxr) {
+                scene.systems.webxr.addEventListener('ar-hit-test', function (evt) {
+                    marker.setAttribute('position', evt.detail.position);
+                    marker.setAttribute('visible', true);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

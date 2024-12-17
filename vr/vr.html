@@ -101,7 +101,8 @@
       exposure: 1.2;
       toneMapping: ACESFilmic;
       toneMappingExposure: 1.2;
-    " vr-mode-ui="enabled: true"> <!-- 启用VR模式UI -->
+    " vr-mode-ui="enabled: true" ar-mode-ui=" enabled: true; 
+                    enterARButton: #custom-enter-ar"> <!-- 启用VR模式UI -->
 
     <!-- 源预加载区域 -->
     <a-assets timeout="10000">
@@ -112,6 +113,9 @@
       <a-asset-item id="oceanSceneModel" src="assets/animated_ocean_scene_tutorial_example_1/scene.gltf"
         crossorigin="anonymous">
       </a-asset-item>
+
+      <!-- 添加卡通海豚模型 -->
+      <a-asset-item id="dolphinModel" src="assets/cartoon_dolphins/scene.gltf" crossorigin="anonymous"></a-asset-item>
 
       <!-- 添加图片资源 -->
       <img id="skyImage" src="assets/sky.jpg" crossorigin="anonymous">
@@ -128,6 +132,10 @@
         class="interactive">
       </a-image>
 
+      <!-- 添加卡通海豚 -->
+      <a-entity id="dolphin" gltf-model="#dolphinModel" position="0 15 0" scale="1.5 1.5 1.5">
+      </a-entity>
+
       <!-- 添加海底气泡效果 -->
       <a-entity id="bubbles" scale="0.8 0.3 0.8" particle-system="
         preset: dust; 
@@ -140,15 +148,8 @@
         blending: additive;       // 添加加法混合模式
         randomize: true;          // 启用随机效果
         velocitySpread: 0.2 0 0.2;  // 添加一些水平方向的随机运动
-        accelerationValue: 0 0.1 0;  // 轻微的向上加速度
+        accelerationValue: 0 0.1 0;  // ���微的向上加速度
         positionSpread: 2 0 2">
-      </a-entity>
-
-      <!-- 添加动画球体 -->
-      <a-entity id=" sphere" geometry="primitive: sphere"
-        material="color: #EFEFEF; shader: standard; emissive: #EFEFEF; emissiveIntensity: 0.2" position="0 1.6 -3"
-        light="type: point; intensity: 0.5; distance: 5"
-        animation="property: position; easing: easeInOutQuad; dir: alternate; dur: 1000; to: 0 1.4 -3; loop: true">
       </a-entity>
 
       <!-- 添加海洋效果 -->
@@ -166,10 +167,35 @@
       <!-- 相机设置 -->
       <a-entity id="rig">
         <a-camera id="camera" position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls>
-          <!-- 跟随视角的球体 -->
-          <a-sphere position="0 -0.3 -2" radius="0.5" color="#FFC65D" class="interactive"
-            animation="property: position.y; dir: alternate; dur: 1000; to: -0.5; loop: true">
-          </a-sphere>
+          <!-- 跟随视角的球体 - 泡泡效果 -->
+          <a-entity geometry="primitive: sphere; radius: 0.3" position="0 -0.8 -1" material="shader: flat; 
+                             src: #coveImage; 
+                             opacity: 0.6; 
+                             side: double;
+                             transparent: true;
+                             metalness: 0.3;
+                             roughness: 0.3;
+                             alphaTest: 0.2;
+                             emissive:#ff4000;
+                             emissiveIntensity: 0.3" animation__position="property: position; 
+                             dir: alternate; 
+                             dur: 2000; 
+                             easing: easeInOutSine; 
+                             to: 0 -0.65 -1; 
+                             loop: true" animation__rotate="property: rotation;
+                             from: 0 0 0;
+                             to: 180 1260 180;
+                             dur: 20000;
+                             easing: linear;
+                             loop: true">
+            <!-- 内部点光源 -->
+            <a-entity light="type: point;
+                            color: #ff2200;
+                            intensity: 0.8;
+                            distance: 1.5;
+                            decay: 1" position="0 0 0">
+            </a-entity>
+          </a-entity>
         </a-camera>
       </a-entity>
 
@@ -195,43 +221,6 @@
       <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
         class="interactive">
       </a-entity>
-
-      <!-- 9个保持原始比例(0.75)的弧形图片 -->
-      <!-- 0度 -->
-      <a-curvedimage id="the-cove-1" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 0 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 40度 -->
-      <a-curvedimage id="the-cove-2" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 40 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 80度 -->
-      <a-curvedimage id="the-cove-3" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 80 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 120度 -->
-      <a-curvedimage id="the-cove-4" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 120 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 160度 -->
-      <a-curvedimage id="the-cove-5" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 160 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 200度 -->
-      <a-curvedimage id="the-cove-6" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 200 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 240度 -->
-      <a-curvedimage id="the-cove-7" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 240 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 280度 -->
-      <a-curvedimage id="the-cove-8" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 280 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
-
-      <!-- 320度 -->
-      <a-curvedimage id="the-cove-9" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 320 0"
-        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
 
       <!-- 加载屏幕 -->
       <div id="loading-screen">
@@ -261,6 +250,17 @@
               }, 500);
             }
           }, 10000);
+        });
+      </script>
+
+      <!-- 添加自定义 AR 按钮并设置跳转 -->
+      <button id="custom-enter-ar" style="display: none"></button>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const arButton = document.querySelector('#custom-enter-ar');
+          arButton.addEventListener('click', function () {
+            window.location.href = 'ar.html';
+          });
         });
       </script>
 
