@@ -18,6 +18,34 @@
   <!-- 引入 entity-generator 组件 -->
   <script
     src="https://unpkg.com/aframe-entity-generator-component@3.0.2/dist/aframe-entity-generator-component.min.js"></script>
+  <!-- 添加自定义组件 -->
+  <script>
+    AFRAME.registerComponent('follow-camera', {
+      schema: {
+        distance: { type: 'number', default: 2 },
+        height: { type: 'number', default: -0.5 }
+      },
+
+      tick: function () {
+        var cameraEl = document.querySelector('#camera');
+        if (!cameraEl) return;
+
+        // 获取相机的世界位置和旋转
+        var worldPos = new THREE.Vector3();
+        var worldDir = new THREE.Vector3();
+        cameraEl.object3D.getWorldPosition(worldPos);
+        cameraEl.object3D.getWorldDirection(worldDir);
+
+        // 计算球体的目标位置
+        var targetPosition = worldPos.clone()
+          .add(worldDir.multiplyScalar(this.data.distance));
+        targetPosition.y += this.data.height;
+
+        // 设置球体位置
+        this.el.object3D.position.copy(targetPosition);
+      }
+    });
+  </script>
   <!-- 加载页面样式 -->
   <style>
     /* 加载屏幕样式设置 */
@@ -75,7 +103,7 @@
       toneMappingExposure: 1.2;
     " vr-mode-ui="enabled: true"> <!-- 启用VR模式UI -->
 
-    <!-- 资源预加载区域 -->
+    <!-- 源预加载区域 -->
     <a-assets timeout="10000">
       <!-- 添加展览馆模型 -->
       <a-asset-item id="galleryModel" src="assets/white_round_exhibition_gallery/scene.gltf"></a-asset-item>
@@ -88,6 +116,9 @@
       <!-- 添加图片资源 -->
       <img id="skyImage" src="assets/sky.jpg" crossorigin="anonymous">
 
+      <!-- 添加新的图片资源 -->
+      <img id="coveImage" src="assets/the_cove.jpg" crossorigin="anonymous">
+
     </a-assets>
 
     <!-- VR场景内容 -->
@@ -96,14 +127,6 @@
       <a-image id="skyImage" src="#skyImage" position="0 21.3 0" rotation="90 0 0" scale="25 25 0" width="3" height="2"
         class="interactive">
       </a-image>
-
-      <!-- 旋转的立方体 -->
-      <a-box position="0 1.6 -2" rotation="0 45 0" color="#4CC3D9" class="interactive">
-      </a-box>
-
-      <!-- 上下浮动的球体 -->
-      <a-sphere position="2 1.6 -2" radius="0.5" color="#FFC65D" class="interactive">
-      </a-sphere>
 
       <!-- 添加海底气泡效果 -->
       <a-entity id="bubbles" scale="0.8 0.3 0.8" particle-system="
@@ -142,8 +165,12 @@
 
       <!-- 相机设置 -->
       <a-entity id="rig">
-        <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true"
-          wasd-controls></a-entity>
+        <a-camera id="camera" position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls>
+          <!-- 跟随视角的球体 -->
+          <a-sphere position="0 -0.3 -2" radius="0.5" color="#FFC65D" class="interactive"
+            animation="property: position.y; dir: alternate; dur: 1000; to: -0.5; loop: true">
+          </a-sphere>
+        </a-camera>
       </a-entity>
 
       <!-- 场景光照置 -->
@@ -168,6 +195,43 @@
       <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
         class="interactive">
       </a-entity>
+
+      <!-- 9个保持原始比例(0.75)的弧形图片 -->
+      <!-- 0度 -->
+      <a-curvedimage id="the-cove-1" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 0 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 40度 -->
+      <a-curvedimage id="the-cove-2" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 40 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 80度 -->
+      <a-curvedimage id="the-cove-3" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 80 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 120度 -->
+      <a-curvedimage id="the-cove-4" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 120 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 160度 -->
+      <a-curvedimage id="the-cove-5" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 160 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 200度 -->
+      <a-curvedimage id="the-cove-6" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 200 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 240度 -->
+      <a-curvedimage id="the-cove-7" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 240 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 280度 -->
+      <a-curvedimage id="the-cove-8" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 280 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
+
+      <!-- 320度 -->
+      <a-curvedimage id="the-cove-9" src="#coveImage" height="20" radius="26.67" theta-length="40" rotation="0 320 0"
+        scale="1 1 1" position="0 3 0" class="interactive"></a-curvedimage>
 
       <!-- 加载屏幕 -->
       <div id="loading-screen">
