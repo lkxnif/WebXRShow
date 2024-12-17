@@ -92,16 +92,13 @@
 </head>
 
 <body>
-    <a-scene
-        webxr="requiredFeatures: local-floor; optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; overlayElement: #overlay;"
-        device-orientation-permission-ui="enabled: true" renderer="
-        colorManagement: true;
-        physicallyCorrectLights: false;
-        gammaOutput: true;
-        exposure: 1.2;
-        toneMapping: ACESFilmic;
-        toneMappingExposure: 1.2;
-    " vr-mode-ui="enabled: true">
+    <a-scene webxr="optionalFeatures: dom-overlay, bounded-floor, camera-access, hit-test; overlayElement: #overlay;"
+        device-orientation-permission-ui="enabled: true" renderer="colorManagement: true;
+                 physicallyCorrectLights: false;
+                 gammaOutput: true;
+                 exposure: 1.2;
+                 toneMapping: ACESFilmic;
+                 toneMappingExposure: 1.2;" vr-mode-ui="enabled: true">
 
         <!-- 资源预加载区域 -->
         <a-assets timeout="10000">
@@ -154,34 +151,52 @@
             <!-- 新的天空系统 -->
             <a-simple-sun-sky sun-position="1 0.4 0"></a-simple-sun-sky>
 
-            <!-- 场景光照置 -->
+            <!-- 添加展览馆模型 -->
+            <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
+                class="interactive">
+            </a-entity>
+
+            <!-- 场景光照 -->
             <!-- 环境光：营深蓝色调的深海氛围 -->
             <a-entity light="type: ambient; color: #0c3a6c; intensity: 0.5"></a-entity>
 
             <!-- 平行光：模拟水面折射光 -->
             <a-entity id="water-light-1" light="type: directional; 
-                    color: #2a65a5; 
-                    intensity: 0.8; 
-                    castShadow: false" position="-0.5 4 1">
+                        color: #2a65a5; 
+                        intensity: 0.8; 
+                        castShadow: false" position="-0.5 4 1">
             </a-entity>
 
             <!-- 半球光：模拟水体散射 -->
             <a-entity light="type: hemisphere; 
-                    color: #2a65a5; 
-                    groundColor: #0c2545; 
-                    intensity: 0.5">
+                        color: #2a65a5; 
+                        groundColor: #0c2545; 
+                        intensity: 0.5">
             </a-entity>
+        </a-entity>
 
-            <!-- VR控制器设置 -->
-            <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
-            <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+        <!-- AR内容 -->
+        <a-entity id="ar-content" visible="false">
+            <!-- AR模式的展览馆模型 -->
+            <a-entity id="gallery-model-ar" gltf-model="#galleryModel" position="0 0 -3" scale="0.05 0.05 0.05"
+                rotation="0 0 0" class="interactive"></a-entity>
 
-            <!-- 相机设置 -->
-            <a-entity id="rig">
-                <a-camera id="camera" position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls>
-                    <!-- 跟随视角的球体 - 泡泡效果 -->
-                    <a-entity id="follow-sphere" geometry="primitive: sphere; radius: 0.3" position="0 -0.8 -1"
-                        material="shader: flat; 
+            <!-- AR模式的hit-test标记 -->
+            <a-entity id="hit-test-marker" visible="false">
+                <a-circle radius="0.1" rotation="-90 0 0" material="color: #FF4444; opacity: 0.6"></a-circle>
+                <a-circle radius="0.08" rotation="-90 0 0" material="color: white; opacity: 0.8"></a-circle>
+            </a-entity>
+        </a-entity>
+
+        <!-- VR控制器设置 -->
+        <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .interactive"></a-entity>
+        <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .interactive"></a-entity>
+
+        <!-- 相机设置 -->
+        <a-entity id="rig">
+            <a-camera id="camera" position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls>
+                <!-- 跟随视角的球体 - 泡泡效果 -->
+                <a-entity geometry="primitive: sphere; radius: 0.3" position="0 -0.8 -1" material="shader: flat; 
                                 src: #coveImage; 
                                 opacity: 0.6; 
                                 side: double;
@@ -201,34 +216,15 @@
                                 dur: 20000;
                                 easing: linear;
                                 loop: true">
-                        <!-- 内部点光源 -->
-                        <a-entity light="type: point;
+                    <!-- 内部点光源 -->
+                    <a-entity light="type: point;
                                 color: #ff2200;
                                 intensity: 0.8;
                                 distance: 1.5;
                                 decay: 1" position="0 0 0">
-                        </a-entity>
                     </a-entity>
-                </a-camera>
-            </a-entity>
-
-            <!-- 添加展览馆模型 -->
-            <a-entity id="gallery-model" gltf-model="#galleryModel" position="0 9 0" scale="2 2 2" rotation="0 0 0"
-                class="interactive">
-            </a-entity>
-        </a-entity>
-
-        <!-- AR内容 -->
-        <a-entity id="ar-content" visible="false">
-            <!-- AR模式的展览馆模型 -->
-            <a-entity id="gallery-model-ar" gltf-model="#galleryModel" position="0 0 -3" scale="0.05 0.05 0.05"
-                rotation="0 0 0" class="interactive"></a-entity>
-
-            <!-- AR模式的hit-test标记 -->
-            <a-entity id="hit-test-marker" visible="false">
-                <a-circle radius="0.1" rotation="-90 0 0" material="color: #FF4444; opacity: 0.6"></a-circle>
-                <a-circle radius="0.08" rotation="-90 0 0" material="color: white; opacity: 0.8"></a-circle>
-            </a-entity>
+                </a-entity>
+            </a-camera>
         </a-entity>
     </a-scene>
 
